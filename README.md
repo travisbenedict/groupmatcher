@@ -4,6 +4,8 @@ A web app for determining optimal groupings for things like sports teams and wed
 
 Built with bolt.new and Gemini CLI
 
+A live version of this app can be found at: https://iridescent-conkies-0c7fec.netlify.app/
+
 ### Overview
 
 After manually inputting all names either through manual entry or CSV upload each pair of people will be scored 1-5 based on compatibility. If two people must be paired or must not be paired that can be specified. 
