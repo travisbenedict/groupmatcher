@@ -14,24 +14,26 @@ export const GroupConfiguration: React.FC<GroupConfigurationProps> = ({
   onBack
 }) => {
   const [configType, setConfigType] = useState<'group-size' | 'num-groups'>('group-size');
-  const [groupSize, setGroupSize] = useState(4);
-  const [numGroups, setNumGroups] = useState(Math.ceil(people.length / 4));
+  const [groupSize, setGroupSize] = useState<number | ''>(4);
+  const [numGroups, setNumGroups] = useState<number | ''>(Math.ceil(people.length / 4));
 
   const handleNext = () => {
     if (configType === 'group-size') {
+      if (groupSize === '') return;
       onNext(groupSize);
     } else {
+      if (numGroups === '') return;
       const calculatedGroupSize = Math.ceil(people.length / numGroups);
       onNext(calculatedGroupSize);
     }
   };
 
   const calculatedGroups = configType === 'group-size' 
-    ? Math.ceil(people.length / groupSize)
+    ? groupSize && Math.ceil(people.length / groupSize)
     : numGroups;
 
   const calculatedGroupSize = configType === 'num-groups'
-    ? Math.ceil(people.length / numGroups)
+    ? numGroups && Math.ceil(people.length / numGroups)
     : groupSize;
 
   return (
@@ -85,7 +87,8 @@ export const GroupConfiguration: React.FC<GroupConfigurationProps> = ({
                 min="2"
                 max={people.length}
                 value={groupSize}
-                onChange={(e) => setGroupSize(parseInt(e.target.value) || 2)}
+                onChange={(e) => setGroupSize(e.target.value === '' ? '' : parseInt(e.target.value) || 2)}
+                placeholder="e.g., 4"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
               />
             </div>
@@ -99,7 +102,8 @@ export const GroupConfiguration: React.FC<GroupConfigurationProps> = ({
                 min="1"
                 max={Math.floor(people.length / 2)}
                 value={numGroups}
-                onChange={(e) => setNumGroups(parseInt(e.target.value) || 1)}
+                onChange={(e) => setNumGroups(e.target.value === '' ? '' : parseInt(e.target.value) || 1)}
+                placeholder="e.g., 3"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
               />
             </div>

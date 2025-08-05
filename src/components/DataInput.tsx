@@ -7,9 +7,11 @@ interface DataInputProps {
   people: Person[];
   onPeopleChange: (people: Person[]) => void;
   onNext: () => void;
+  groupingName: string;
+  onGroupingNameChange: (name: string) => void;
 }
 
-export const DataInput: React.FC<DataInputProps> = ({ people, onPeopleChange, onNext }) => {
+export const DataInput: React.FC<DataInputProps> = ({ people, onPeopleChange, onNext, groupingName, onGroupingNameChange }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -53,6 +55,17 @@ export const DataInput: React.FC<DataInputProps> = ({ people, onPeopleChange, on
       <div className="bg-white rounded-xl shadow-lg p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Add People</h2>
         
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-600 mb-2">Grouping Name</label>
+          <input
+            type="text"
+            value={groupingName}
+            onChange={(e) => onGroupingNameChange(e.target.value)}
+            placeholder="Enter a name for this grouping (e.g., Project Alpha Team)"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h3 className="text-xl font-semibold text-gray-700 mb-4">Manual Entry</h3>
@@ -65,6 +78,7 @@ export const DataInput: React.FC<DataInputProps> = ({ people, onPeopleChange, on
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter person's name"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  onKeyDown={(e) => e.key === 'Enter' && addPerson()}
                 />
               </div>
               <div>
@@ -75,6 +89,7 @@ export const DataInput: React.FC<DataInputProps> = ({ people, onPeopleChange, on
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Brief description or notes"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  onKeyDown={(e) => e.key === 'Enter' && addPerson()}
                 />
               </div>
               <button

@@ -8,6 +8,7 @@ import { Results } from './components/Results';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<AppStep>('input');
+  const [groupingName, setGroupingName] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
   const [ratings, setRatings] = useState<PairRating[]>([]);
   const [constraints, setConstraints] = useState<Constraint[]>([]);
@@ -119,6 +120,8 @@ function App() {
             people={people}
             onPeopleChange={setPeople}
             onNext={() => setCurrentStep('rating')}
+            groupingName={groupingName}
+            onGroupingNameChange={setGroupingName}
           />
         )}
 
@@ -154,6 +157,7 @@ function App() {
             initialGroupSize={groupSize}
             onBack={() => setCurrentStep('configuration')}
             onStartOver={resetApp}
+            groupingName={groupingName}
           />
         )}
       </main>

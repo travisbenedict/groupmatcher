@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, RotateCcw, Star, Settings } from 'lucide-react';
+import { Users, RotateCcw, Star, Settings, Download } from 'lucide-react';
 import { Group, Person, PairRating, Constraint } from '../types';
 import { optimizeGroups, calculateGroupScore } from '../utils/optimization';
 
@@ -10,6 +10,7 @@ interface ResultsProps {
   initialGroupSize: number;
   onBack: () => void;
   onStartOver: () => void;
+  groupingName: string;
 }
 
 export const Results: React.FC<ResultsProps> = ({
@@ -18,12 +19,14 @@ export const Results: React.FC<ResultsProps> = ({
   constraints,
   initialGroupSize,
   onBack,
-  onStartOver
+  onStartOver,
+  groupingName
 }) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupSize, setGroupSize] = useState(initialGroupSize);
   const [isCalculating, setIsCalculating] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const calculateGroups = (size: number) => {
     setIsCalculating(true);
@@ -43,6 +46,57 @@ export const Results: React.FC<ResultsProps> = ({
     calculateGroups(groupSize);
     setShowConfig(false);
   };
+
+  const exportToCsv = (withRankings: boolean) => {
+    let csvRows = [];
+    if (withRankings) {
+      const header = ['Person', ...people.map(p => p.name)];
+      csvRows.push(header.join(','));
+
+      people.forEach(p1 => {
+        const row = [p1.name];
+        people.forEach(p2 => {
+          if (p1.id === p2.id) {
+            row.push('N/A');
+            return;
+          }
+
+          const constraint = constraints.find(c => 
+            (c.person1Id === p1.id && c.person2Id === p2.id) ||
+            (c.person1Id === p2.id && c.person2Id === p1.id)
+          );
+
+          if (constraint) {
+            row.push(constraint.type === 'must-pair' ? '100' : '-1');
+            return;
+          }
+
+          const rating = ratings.find(r => 
+            (r.person1Id === p1.id && r.person2Id === p2.id) ||
+            (r.person1Id === p2.id && r.person2Id === p1.id)
+          );
+          row.push(rating ? rating.rating.toString() : 'N/A');
+        });
+        csvRows.push(row.join(','));
+      });
+    } else {
+      csvRows.push('Group,Person');
+      groups.forEach((group, index) => {
+        group.members.forEach(person => {
+          csvRows.push(`${index + 1},${person.name}`);
+        });
+      });
+    }
+
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${groupingName || 'groups'}${withRankings ? '_with_rankings' : ''}.csv`);
+    document.body.appendChild(link); // Required for FF
+    link.click();
+    document.body.removeChild(link);
+  }
 
   const totalScore = groups.reduce((sum, group) => sum + group.totalScore, 0);
   const maxPossibleScore = groups.reduce((sum, group) => 
@@ -69,7 +123,7 @@ export const Results: React.FC<ResultsProps> = ({
       <div className="bg-white rounded-xl shadow-lg p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Optimal Groups</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">{groupingName || 'Optimal Groups'}</h2>
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <span>Total Score: <strong className="text-blue-600">{totalScore.toFixed(1)}</strong></span>
               <span>Efficiency: <strong className="text-green-600">{efficiencyPercentage.toFixed(1)}%</strong></span>
@@ -91,6 +145,22 @@ export const Results: React.FC<ResultsProps> = ({
               <RotateCcw size={16} />
               Start Over
             </button>
+            <div className="relative inline-block text-left">
+              <div>
+                <button type="button" onClick={() => setShowExportMenu(!showExportMenu)} className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="options-menu" aria-haspopup="true" aria-expanded="true">
+                  <Download size={16} className="-ml-1 mr-2 h-5 w-5" />
+                  Export
+                </button>
+              </div>
+              {showExportMenu && (
+                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                  <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                    <button type="button" onClick={() => { exportToCsv(false); setShowExportMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">Export Groups</button>
+                    <button type="button" onClick={() => { exportToCsv(true); setShowExportMenu(false); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-ray-100 hover:text-gray-900" role="menuitem">Export with Rankings</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
